@@ -6,6 +6,18 @@ class Card:
         return f"{self.value} of {self.suit}"
 
 
+class Deck:
+    pass
+
+
+class Table:
+    pass
+
+
+class Player:
+    pass
+
+
 class Game:
     def __init__(self):
         self.running = True
