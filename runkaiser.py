@@ -1,5 +1,6 @@
 import json
 import random
+import sys
 
 card_file = "cardproperties.json"
 with open(card_file, "r") as file:
@@ -15,6 +16,12 @@ class Card:
 
     def show(self):
         print(self)
+
+    def get_value(self):
+        return self.value
+
+    def get_suit(self):
+        return self.suit
 
 
 class Deck:
@@ -36,6 +43,10 @@ class Deck:
                     self.cards.append(Card(value, suit))
         for card in cardproperties["extracards"]:
             self.cards.append(Card(card["value"], card["suit"]))
+        for card in cardproperties["removedcards"]:
+            for i, card_from_cards in enumerate(self.cards):
+                if card_from_cards.get_value() == card["value"] and card_from_cards.get_suit() == card["suit"]:
+                    self.cards.pop(i)
 
     def shuffle(self):
         random.shuffle(self.cards)
@@ -53,9 +64,58 @@ class Deck:
     def draw(self):
         return self.cards.pop()
 
+    def return_card(self, card):
+        self.cards.append(card)
+
+
+class Trick:
+    def __init__(self, cards):
+        self.cards = cards
+        self.value = 1
+        self.evaluate_value()
+
+    def evaluate_value(self):
+        for i, card in enumerate(self.cards):
+            if card.get_value() == 3 and card.get_suit() == "H":
+                self.value -= 3
+            if card.get_value() == 5 and card.get_suit() == "S":
+                self.value += 5
+        return self.value
+
+
+class Team:
+    def __init__(self, team_id):
+        self.id = team_id
+        self.tricks = []
+        self.score = 0
+        self.current_tricks = []
+        self.trick_value = 0
+
+    def determine_trick_score(self):
+        for trick in self.current_tricks:
+            self.trick_value += trick.evaluate_value()
+
 
 class Table:
-    pass
+    def __int__(self):
+        self.current_cards = []
+
+    def clear(self, deck):
+        for card in self.current_cards:
+            deck.return_card(card)
+        self.current_cards.clear()
+
+    def check_full(self):
+        if len(self.current_cards) >= 4:
+            return True
+        else:
+            return False
+
+    def play(self, card):
+        if not self.check_full():
+            self.current_cards.append(card)
+        else:
+            raise ValueError("cant play more than 4 cards at once")
 
 
 class Player:
@@ -68,6 +128,9 @@ class Player:
 
     def __int__(self):
         return len(self.hand)
+
+    def play(self, index, table):
+        table.play(self.hand[index].pop())
 
     def draw(self, deck: Deck, amount: int = 1):
         for _ in range(amount):
@@ -90,7 +153,6 @@ class Game:
         self.deck = Deck()
         for i in range(4):
             self.players.append(Player(f"Player{i+1}"))
-        self.show_players()
 
     def process_exit(self):
         if self.user_input == "exit":
@@ -102,14 +164,15 @@ class Game:
 
     def loop(self):
         while self.running:
-            self.user_input = input()
+            self.user_input = input(">>> ")
             self.process_exit()
 
 
 def main():
     game = Game()
-    game.loop()
+    game.deck.show()
 
 
 if __name__ == "__main__":
     main()
+    sys.exit(1)

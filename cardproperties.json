@@ -3,5 +3,6 @@
   "suits": ["D", "H", "S", "C"],
   "symbols": {"D":"\u2666", "H":"\u2665", "S": "\u2660", "C":"\u2663"},
   "extracards": [{"value":  3, "suit":  "S"}, {"value": 5, "suit": "H"}],
+  "removedcards": [{"value": 7, "suit": "S"}, {"value": 7, "suit": "H"}],
   "duplications": 1
 }
