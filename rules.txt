@@ -1,0 +1,35 @@
+Those are the rules for the following Kaiser card game
+https://uniquewoodproducts.ca/kaiser-rules/
+
+Summary:
+32 cards ✓
+4 Players ✓
+Teams with opposite Players
+win game with score of 52 or lose with -52
+Deal and play rotates clockwise first deal ✓ is random
+
+Bidding:
+7 - 12 or pass
+Kaier 40 wins 40 when bidder wins all 8 tricks and loses 40 otherwise
+player left to dealer bedins
+with no or without no
+dealer can overtake bid with same bidding
+dealer have to play 7 when everyone passes
+
+Playing:
+You have to follow suit or trump
+Trump is higher than suit
+higest card wins
+winner comes out
+
+Scoring:
+Each team count score of all tricks together at the end of round
+bidding team will count points first
+when bidding team got equal or more points then they bid then they add the points they made to their score
+else they subtract their bid
+when played "no" the change is doubled
+if the contra team has 46 points or less then they add their points
+if they have 47 or more than they only substract if given
+
+Extra:
+When your Hand doesnt contain any ace, picture or 3 or 5 then you can choose if a new deal is forced

@@ -1,0 +1,42 @@
+Imports
+
+(Define Global Variables)
+Load game files
+
+Define Game Objects
+Define Game Class which contains all the instances of gameobjects
+
+Game class structure
+    running: is True while the whole game is running
+
+What happens in the round
+    before round
+        deal cards
+
+        show hand of bidder
+        ask for bid
+        move to next player
+        -
+        set bid to highest bid and store team of won bid
+        set trump to no when bid trump
+        when nobody bids set team to team of last player and bid to 7
+
+        when bid is no trump ask for trump before first card is played
+    while (Loop) round
+        show hand
+        ask for played card
+        check if card is playable
+        play card on table
+
+        when table is full pack cards into trick and add trick to the team who won the trick
+
+    after round
+        check if bidding team has trick score of their bid
+        add score determined by trickvalue to team score
+        when no double the score
+        check if team has more than 52 or less then 52 -> Ends Game and prints winner
+
+        clear tricks from teams
+        move dealer job to next player
+        build new deck
+        start new round
