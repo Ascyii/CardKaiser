@@ -1,3 +1,4 @@
+from functools import total_ordering
 import json
 import random
 import sys
@@ -7,6 +8,7 @@ with open(CARD_FILE, "r") as file:
     CARDPROPERTIES = json.load(file)
 
 
+@total_ordering
 class Card:
     def __init__(self, value, suit):
         self.value, self.suit = value, suit
@@ -14,14 +16,23 @@ class Card:
     def __str__(self):
         return f"{self.rank_to_name()}{CARDPROPERTIES['symbols'][self.suit]}"
 
-    def __eq__(self, other):
-        return self.value == other.get_value
+    def __repr__(self):
+        return str(self)
 
     def __lt__(self, other):
-        return self.value < other.get_value()
+        t1 = self.suit, self.value
+        t2 = other.suit, other.value
+        return t1 < t2
 
     def __gt__(self, other):
-        return self.value > other.get_value()
+        t1 = self.suit, self.value
+        t2 = other.suit, other.value
+        return t1 > t2
+
+    def __eq__(self, other):
+        t1 = self.suit, self.value
+        t2 = other.suit, other.value
+        return t1 == t2
 
     def show(self):
         print(self)
@@ -110,6 +121,7 @@ class Team:
         return f"Team{self.id} with a score of {self.score}"
 
     def determine_trick_score(self):
+        self.trick_value = 0
         for trick in self.current_tricks:
             self.trick_value += trick.evaluate_value()
 
@@ -117,13 +129,18 @@ class Team:
         self.current_tricks.clear()
         self.trick_value = 0
 
+    def add_trick(self, trick):
+        self.current_tricks.append(trick)
+        self.determine_trick_score()
+        print(f"Current trick score: {self.trick_value}")
+
     def reset(self):
         self.clear_tricks()
         self.score = 0
 
 
 class Table:
-    def __int__(self):
+    def __init__(self):
         self.current_cards = []
 
     def clear(self, deck):
@@ -137,19 +154,21 @@ class Table:
         else:
             return False
 
-    def get_winner_of_trick(self, trump):
-        winner = Player
-        if trump != "N":
-            leading_suit = self.current_cards[0][0].get_suit()
+    def get_winner_of_trick(self, trump) -> Team:
+        leading_suit = self.current_cards[0][0].get_suit()
+        winner = self.current_cards[0][1].team
+        if trump == "N":
+            winner = self.current_cards[0][1].team
             print(leading_suit)
             for card_container in self.current_cards:
                 card = card_container[0]
                 player_of_card = card_container[1]
-
         return winner
 
-    def pack_to_trick(self, deck):
+    def pack_to_trick(self, deck) -> Trick:
+        trick = Trick(self.current_cards)
         self.clear(deck)
+        return trick
 
     def play(self, player, card):
         if not self.check_full():
@@ -159,7 +178,7 @@ class Table:
 
 
 class Player:
-    name = ""
+    name = "none"
 
     def __init__(self, team: Team, name="Player"):
         self.team = team
@@ -169,11 +188,14 @@ class Player:
     def __str__(self):
         return f"I am {self.name} in {self.team} with {len(self.hand)} Cards"
 
+    def __repr__(self):
+        return self.name
+
     def __int__(self):
         return len(self.hand)
 
-    def play(self, index, table):
-        table.play(self.hand[index].pop(), self)
+    def play(self, card, table):
+        table.play(card, self)
 
     def draw(self, deck: Deck, amount: int = 1):
         for _ in range(amount):
@@ -192,8 +214,8 @@ class Player:
             deck.return_card(card)
         self.hand.clear()
 
-    def sort_hand(self):
-        pass
+    def sortHand(self):
+        self.hand.sort()
 
 
 class Game:
@@ -235,6 +257,7 @@ class Game:
         print(f"The current dealer is: {self.current_dealer.name}")
         print(f"The current bidder is: {self.current_bidder.name}")
         print(f"The current player is: {self.current_player.name}")
+        print("-" * 100)
 
     def deal_cards(self):
         while int(self.deck) > 0:
@@ -256,6 +279,8 @@ class Game:
         self.clear_hands()
         self.deck.shuffle()
         self.deal_cards()
+        for player in self.players:
+            player.sortHand()
         self.show_players()
 
     def ask_for_input(self):
@@ -289,31 +314,77 @@ class Game:
 
     def ask_for_card(self, hand) -> Card:
         while True:
-            inp = int(self.ask_for_input())
             try:
-                card = hand[inp-1]
+                inp = int(self.ask_for_input())
+                card = hand[inp - 1]
                 break
-            except IndexError:
+            except (IndexError, ValueError):
                 print("enter valid index")
         return card
+
+    def ask_for_trump(self):
+        suits = CARDPROPERTIES["suits"]
+        while True:
+            inp = self.ask_for_input()
+            if inp in suits:
+                return inp
+            else:
+                print("enter suit D, H, S, C:  ")
 
     def round(self):
         for _ in range(len(self.players)):
             print(f"{self.current_bidder.name} is bidding.")
             self.current_bidder.show()
             self.ask_for_bid()
-
             self.current_bidder = self.next_player(self.current_bidder)
+        if self.highest_bid == 6:
+            self.highest_bid = 7
+            self.current_player = self.current_bidder
+            self.bidding_team = self.current_bidder.team
+            while True:
+                inp = str(input("Do you want to play no? (y or n) "))
+                if inp == "y":
+                    self.have_no = True
+                    break
+                elif inp == "n":
+                    self.have_no = False
+                    break
+
+        if not self.have_no:
+            print("enter trump")
+            self.trump = self.ask_for_trump()
+            print(f"{self.trump} is trump for this round")
+        else:
+            self.trump = "N"
+            print("nothing is trump")
+
         print(f"{self.current_player} starts with playing.")
         print(f"{self.bidding_team} won the bid with {self.highest_bid} and no {self.have_no}.")
+
         round_active = True
         while round_active:
-            player = self.current_player
-            player.show()
-            player.play(self.ask_for_card(player.hand), self.table)
-            self.current_player = self.next_player(self.current_player)
+            for _ in range(4):
+                player = self.current_player
+                player.show()
+                while True:
+                    hovered_card = self.ask_for_card(player.hand)
+                    if self.check_playable(hovered_card, player):
+                        player.play(hovered_card, self.table)
+                        break
+                    else:
+                        print("You cant play this card.")
+                self.current_player = self.next_player(self.current_player)
+
+            trick_winner = self.table.get_winner_of_trick(self.trump)
+            trick = self.table.pack_to_trick(self.deck)
+            trick_winner.add_trick(trick)
+            print(f"{trick_winner} won the Trick")
+            print(f"{self.current_player} is starting new.")
 
     def calculate_score(self):
+        print(f"The new scores after this round are: {[t for t in self.teams]}")
+
+    def check_playable(self, card, player):
         pass
 
     def loop(self):
